@@ -7,12 +7,11 @@ import fj.Show;
 import fj.data.List;
 import fj.data.Option;
 import fj.data.Set;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.PolyNull;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.PolyNull;
 
 import static fj.Equal.*;
 import static fj.Ord.ordDef;
@@ -27,12 +26,11 @@ import static org.checkerframework.checker.nullness.util.NullnessUtil.castNonNul
 public class StringUtils {
 
     public static final Equal<String> stringIgnoreCaseEq = equalDef(String::equalsIgnoreCase);
-    public static final Equal<Option<String>> optionStringIgnoreCaseEq =
-            optionEqual(stringIgnoreCaseEq);
+    public static final Equal<Option<String>> optionStringIgnoreCaseEq = optionEqual(stringIgnoreCaseEq);
     public static final Ord<String> caseInsensitiveStringOrd =
             ordDef((a1, a2) -> Ordering.fromInt(a1.compareToIgnoreCase(a2)));
-    private StringUtils() {
-    }
+
+    private StringUtils() {}
 
     @SuppressWarnings("nullness")
     public static @NonNull String pformat(@NonNull String s, @NonNull String @NonNull [] args) {
@@ -40,10 +38,7 @@ public class StringUtils {
             return s;
         }
         String current = args[0];
-        return pformat(
-                s.replaceFirst("\\{}", current),
-                Arrays.copyOfRange(castNonNull(args), 1, args.length)
-        );
+        return pformat(s.replaceFirst("\\{}", current), Arrays.copyOfRange(castNonNull(args), 1, args.length));
     }
 
     public static String format(@NonNull String s, @NonNull String... args) {
@@ -51,9 +46,7 @@ public class StringUtils {
     }
 
     public static <T> String prettyPrint(@PolyNull Collection<@PolyNull T> ts) {
-        return fromNullableCollection(ts)
-                .map(Object::toString)
-                .collect(Collectors.joining(", ", "[", "]"));
+        return fromNullableCollection(ts).map(Object::toString).collect(Collectors.joining(", ", "[", "]"));
     }
 
     public static <T> String pprint(Iterable<T> ts, Show<T> st) {
@@ -65,9 +58,7 @@ public class StringUtils {
     }
 
     public static Option<String> getDigitsOnly(String input) {
-        return Option.fromString(input)
-                .map(s -> s.replaceAll("\\D", ""))
-                .filter(not(String::isEmpty));
+        return Option.fromString(input).map(s -> s.replaceAll("\\D", "")).filter(not(String::isEmpty));
     }
 
     @SuppressWarnings("nullness")
@@ -81,10 +72,8 @@ public class StringUtils {
     }
 
     public static Set<String> filterNullOrBlank(Ord<String> o, java.util.Set<String> input) {
-        return Option.fromNull(input).option(
-                Set.empty(o),
-                ss -> Set.iteratorSet(o, ss.stream().filter(isNotNullOrBlank::f).iterator())
-        );
+        return Option.fromNull(input).option(Set.empty(o),
+                ss -> Set.iteratorSet(o, ss.stream().filter(isNotNullOrBlank::f).iterator()));
     }
 
     public static boolean isOptEqual(Equal<String> eqT, String s1, String s2) {

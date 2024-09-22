@@ -4,7 +4,7 @@ import fj.F;
 import fj.Show;
 import fj.data.List;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 
 @Slf4j
 public class HelloPipelineTest {
@@ -32,10 +32,7 @@ public class HelloPipelineTest {
             return ns.map(n -> n + 4);
         };
 
-        F<List<Integer>, List<Integer>> pipeline1 = step1
-                .andThen(step2)
-                .andThen(step3)
-                .andThen(step4);
+        F<List<Integer>, List<Integer>> pipeline1 = step1.andThen(step2).andThen(step3).andThen(step4);
 
         var input = List.list(1, 2, 3, 4, 5);
         var output = pipeline1.f(input);

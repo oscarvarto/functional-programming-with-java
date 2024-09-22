@@ -3,7 +3,7 @@ package mx.oscarvarto;
 import fj.data.NonEmptyList;
 import fj.data.Validation;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 
 import static fj.Semigroup.nonEmptyListSemigroup;
 import static fj.data.Validation.condition;
@@ -13,29 +13,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Slf4j
 public class ValidationTest {
 
-    private static <E, T> Validation<NonEmptyList<E>, T> check(
-            final boolean c,
-            final E e,
-            final T t) {
+    private static <E, T> Validation<NonEmptyList<E>, T> check(final boolean c, final E e, final T t) {
         return condition(c, e, t).nel();
     }
 
     @Test
     void validationRulesTest1() {
-        var errors = new PersonValidator("  ", -5)
-                .validate()
-                .fail()
-                .map(ErrorMsg::msg);
-        assertThat(errors).containsExactly(
-                NAME_EMPTY_OR_WHITESPACE_ERROR_MSG,
-                NEGATIVE_AGE_ERROR_MSG);
+        var errors = new PersonValidator("  ", -5).validate().fail().map(ErrorMsg::msg);
+        assertThat(errors).containsExactly(NAME_EMPTY_OR_WHITESPACE_ERROR_MSG, NEGATIVE_AGE_ERROR_MSG);
     }
 
     @Test
     void validationRulesTest2() {
         var validatedPerson = new PersonValidator("Chabelo", 340).validate();
-        assertThat(validatedPerson.fail().map(ErrorMsg::msg))
-                .containsExactly(MAX_AGE_ERROR_MSG);
+        assertThat(validatedPerson.fail().map(ErrorMsg::msg)).containsExactly(MAX_AGE_ERROR_MSG);
     }
 
     @Test
@@ -74,9 +65,7 @@ public class ValidationTest {
         }
     }
 
-    record Person(String name, int age) {
-    }
+    record Person(String name, int age) {}
 
-    record ErrorMsg(String msg) {
-    }
+    record ErrorMsg(String msg) {}
 }

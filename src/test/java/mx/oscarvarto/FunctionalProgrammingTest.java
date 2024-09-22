@@ -5,11 +5,6 @@ import fj.Try;
 import fj.Unit;
 import fj.data.*;
 import fj.function.Booleans;
-import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -19,6 +14,10 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.testng.annotations.Test;
 
 import static fj.Equal.stringEqual;
 import static fj.Semigroup.nonEmptyListSemigroup;
@@ -37,36 +36,29 @@ import static mx.oscarvarto.ValidationConstants.*;
 import static mx.oscarvarto.Villain.JOKER;
 import static mx.oscarvarto.Villain.LEX_LUTHOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.checkerframework.checker.nullness.util.NullnessUtil.castNonNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
 public class FunctionalProgrammingTest {
 
-    public static final DateTimeFormatter DATE_TIME_FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final F<String, LocalDateTime> str2LocalDateTime =
             ds -> LocalDateTime.parse(ds, DATE_TIME_FORMATTER);
     // A transformation function from String to LocalDate that may throw a DateTimeParseException
     // Please read the types and try to make sense of them.
     // Exercise: Test this function
     private static final F<String, Validation<DateTimeParseException, LocalDate>> tryReadDate =
-            Try.<String, LocalDate, DateTimeParseException>f(
-                    str -> LocalDate.parse(str, ISO_LOCAL_DATE)
-            );
+            Try.<String, LocalDate, DateTimeParseException>f(str -> LocalDate.parse(str, ISO_LOCAL_DATE));
     // We could handle the exception as a value, but here we decided to simply convert the
     // Validation to an Option
     // Exercise: Test this function
-    private static final F<String, Option<LocalDate>> readDate =
-            tryReadDate.andThen(Validation::toOption);
+    private static final F<String, Option<LocalDate>> readDate = tryReadDate.andThen(Validation::toOption);
     private static final int MAX_AGE = 130;
 
     // Caller needs to do null checks/defensive programming to avoid NPE
-    @Nullable
-    private static LocalDateTime unsafeParseLocalDateTime(@Nullable String dateString) {
-        return dateString == null
-                ? null
-                : LocalDateTime.parse(dateString, DATE_TIME_FORMATTER);
+    @Nullable private static LocalDateTime unsafeParseLocalDateTime(@Nullable String dateString) {
+        return dateString == null ? null : LocalDateTime.parse(dateString, DATE_TIME_FORMATTER);
     }
 
     // NEVER produces a NPE
@@ -78,9 +70,7 @@ public class FunctionalProgrammingTest {
     // Alternative implementation.
     // Never throws an exception
     private static Option<LocalDateTime> parseLocalDateTime(String dateString) {
-        return Try.<String, LocalDateTime, DateTimeParseException>f(
-                        str2LocalDateTime::f)
-                .andThen(Validation::toOption)
+        return Try.<String, LocalDateTime, DateTimeParseException>f(str2LocalDateTime::f).andThen(Validation::toOption)
                 .f(dateString);
     }
 
@@ -91,8 +81,7 @@ public class FunctionalProgrammingTest {
     // Never throws exceptions
     // This method ignores/swallows the DateTimeParseException by converting it to a Option.none()
     private static Option<LocalDate> parseLocalDate1(@Nullable String maybeDate) {
-        var parseF = Try.f((String s) -> LocalDate.parse(s, ISO_LOCAL_DATE))
-                .andThen(Validation::toOption);
+        var parseF = Try.f((String s) -> LocalDate.parse(s, ISO_LOCAL_DATE)).andThen(Validation::toOption);
         // Write code from smaller blocks/functions!!
         return getNonNull(maybeDate).option(none(), parseF);
     }
@@ -105,32 +94,20 @@ public class FunctionalProgrammingTest {
         F<String, Validation<String, LocalDate>> parseF =
                 Try.<String, LocalDate, DateTimeParseException>f(s -> LocalDate.parse(s, ISO_LOCAL_DATE))
                         .andThen(v -> v.f().map(formatParseExF));
-        return getNonNull(maybeDate).option(
-                Validation.fail("Null or empty string"),
-                parseF
-        );
+        return getNonNull(maybeDate).option(Validation.fail("Null or empty string"), parseF);
     }
 
-    private static <E, T> Validation<NonEmptyList<E>, T> check(
-            final boolean c,
-            final E e,
-            final T t) {
+    private static <E, T> Validation<NonEmptyList<E>, T> check(final boolean c, final E e, final T t) {
         return condition(c, e, t).nel();
     }
 
     @Test
     void filterTest1() {
         java.util.List<Character> chars = Arrays.asList('a', 'b', 'A', 'B');
-        java.util.List<Character> lowerCaseChars1 = chars
-                .stream()
-                .filter(c -> Character.isLowerCase(c))
-                .toList();
+        java.util.List<Character> lowerCaseChars1 = chars.stream().filter(c -> Character.isLowerCase(c)).toList();
 
         // Same result, but using a Method reference
-        java.util.List<Character> lowerCaseChars2 = chars
-                .stream()
-                .filter(Character::isLowerCase)
-                .toList();
+        java.util.List<Character> lowerCaseChars2 = chars.stream().filter(Character::isLowerCase).toList();
 
 
         log.info("Filtered: {}", prettyPrint(lowerCaseChars2));
@@ -148,16 +125,10 @@ public class FunctionalProgrammingTest {
     @Test
     void mapTest1() {
         java.util.List<Character> chars = Arrays.asList('a', 'b', 'A', 'B');
-        java.util.List<Character> upperCaseChars1 = chars
-                .stream()
-                .map(c -> Character.toUpperCase(c))
-                .toList();
+        java.util.List<Character> upperCaseChars1 = chars.stream().map(c -> Character.toUpperCase(c)).toList();
 
         // Same result, but using a Method reference
-        java.util.List<Character> upperCaseChars2 = chars
-                .stream()
-                .map(Character::toUpperCase)
-                .toList();
+        java.util.List<Character> upperCaseChars2 = chars.stream().map(Character::toUpperCase).toList();
 
         log.info("Mapped to upper case: {}", prettyPrint(upperCaseChars2));
     }
@@ -165,8 +136,7 @@ public class FunctionalProgrammingTest {
     @Test
     void mapTest2() {
         var chars = list('a', 'b', 'A', 'B');
-        var upperCaseChars2 = chars
-                .map(Character::toUpperCase);
+        var upperCaseChars2 = chars.map(Character::toUpperCase);
 
         log.info("Mapped to upper case: {}", pprint(upperCaseChars2, charShow));
     }
@@ -175,11 +145,8 @@ public class FunctionalProgrammingTest {
     void flatMapTest1() {
         // Problem: get all the different chars from a sentence
         String[] arrayOfWords = {"Hello", "world"};
-        java.util.List<String> uniqueCharacters = Arrays.stream(arrayOfWords)
-                .map(word -> word.split(""))
-                .flatMap(Arrays::stream)
-                .distinct()
-                .toList();
+        java.util.List<String> uniqueCharacters =
+                Arrays.stream(arrayOfWords).map(word -> word.split("")).flatMap(Arrays::stream).distinct().toList();
 
         log.info("Unique chars: {}", prettyPrint(uniqueCharacters));
     }
@@ -188,10 +155,7 @@ public class FunctionalProgrammingTest {
     void flatMapTest2() {
         // Same problem. bind is the same as flatMap
         String[] arrayOfWords = {"Hello", "world"};
-        var uniqueCharacters = list(arrayOfWords)
-                .map(word -> word.split(""))
-                .bind(fj.data.List::list)
-                .nub(stringEqual);
+        var uniqueCharacters = list(arrayOfWords).map(word -> word.split("")).bind(fj.data.List::list).nub(stringEqual);
 
         log.info("Unique chars: {}", pprint(uniqueCharacters, stringShow));
     }
@@ -209,7 +173,8 @@ public class FunctionalProgrammingTest {
     // For more complicated scenarios, null checks can be forgotten, opening the possibility of
     // getting NPEs!!
     private <T> void maybeLog0(@Nullable T t) {
-        if (t == null) return;
+        if (t == null)
+            return;
         log.info(t.toString());
     }
 
@@ -243,9 +208,8 @@ public class FunctionalProgrammingTest {
         // Filter example
         var maybeName3 = Optional.of("    ");
         maybeName3
-                //.filter(s -> !s.isBlank())
-                .filter(Predicate.not(String::isBlank))
-                .ifPresent(this::logString); // Does not print anything
+                // .filter(s -> !s.isBlank())
+                .filter(Predicate.not(String::isBlank)).ifPresent(this::logString); // Does not print anything
 
         // Give an alternative if empty
         // superHero is "Superman" in this example
@@ -292,9 +256,7 @@ public class FunctionalProgrammingTest {
 
         // Filter example
         var maybeName3 = Option.some("    ");
-        maybeName3
-                .filter(Booleans.not(String::isBlank))
-                .foreachDoEffect(this::logString); // Does not print anything
+        maybeName3.filter(Booleans.not(String::isBlank)).foreachDoEffect(this::logString); // Does not print anything
 
         // Give an alternative if empty
         // superHero is "Superman" in this example
@@ -337,9 +299,8 @@ public class FunctionalProgrammingTest {
 
     @Test
     void eitherTest1() {
-        var characters = List.<Either<Villain, Hero>>list(
-                left(JOKER), right(OPTIMUS_PRIME), left(LEX_LUTHOR), right(BATMAN)
-        );
+        var characters =
+                List.<Either<Villain, Hero>>list(left(JOKER), right(OPTIMUS_PRIME), left(LEX_LUTHOR), right(BATMAN));
         F<Villain, String> leftF = villain -> villain.name().toLowerCase();
 
         F<Hero, String> rightF = Enum::name;
@@ -348,14 +309,13 @@ public class FunctionalProgrammingTest {
 
         F<Either<Villain, Hero>, String> nameF = character -> character.either(leftF, rightF);
         fj.data.List<String> formattedNames = characters.map(nameF);
-        assertThat(formattedNames)
-                .containsExactly("joker", "OPTIMUS_PRIME", "lex_luthor", "BATMAN");
+        assertThat(formattedNames).containsExactly("joker", "OPTIMUS_PRIME", "lex_luthor", "BATMAN");
         // You would usually do it like this, and not create so many intermediate variables.
         // We followed the above procedure to help understanding of each function.
         /*
-        fj.data.List<Either<Villain, Hero>> characters =
-            list(left(JOKER), right(OPTIMUS_PRIME), left(LEX_LUTHOR), right(BATMAN));
-        var formattedNames = characters.map(c -> c.either(v -> v.name().toLowerCase(), Enum::name));
+         * fj.data.List<Either<Villain, Hero>> characters = list(left(JOKER), right(OPTIMUS_PRIME),
+         * left(LEX_LUTHOR), right(BATMAN)); var formattedNames = characters.map(c -> c.either(v ->
+         * v.name().toLowerCase(), Enum::name));
          */
 
         fj.data.List<Hero> someHeroes = Either.rights(characters); // Get only the heroes
@@ -370,8 +330,7 @@ public class FunctionalProgrammingTest {
         // Isomorphic to Either but has renamed functions and represents failure on the left and
         // success on the right.
 
-        Validation<DateTimeParseException, LocalDate> dateOrParseEx1 =
-                tryReadDate.f("2011-12-23");
+        Validation<DateTimeParseException, LocalDate> dateOrParseEx1 = tryReadDate.f("2011-12-23");
         assertThat(dateOrParseEx1.isSuccess()).isTrue();
         // Get success value information
         LocalDate date1 = dateOrParseEx1.success();
@@ -380,8 +339,7 @@ public class FunctionalProgrammingTest {
         assertThat(date1.getDayOfMonth()).isEqualTo(23);
         assertThat(dateOrParseEx1.toOption()).isNotEmpty();
 
-        Validation<DateTimeParseException, LocalDate> dateOrParseEx2 =
-                tryReadDate.f("2011-13-01");
+        Validation<DateTimeParseException, LocalDate> dateOrParseEx2 = tryReadDate.f("2011-13-01");
         assertThat(dateOrParseEx2.isFail()).isTrue();
         // Get information about the failure:
         DateTimeParseException ex2 = dateOrParseEx2.fail();
@@ -421,21 +379,19 @@ public class FunctionalProgrammingTest {
 
     @Test
     void validationRulesTest1() {
-        Exception ex = assertThrows(RuntimeException.class,
-                () -> new Person(" ", -5));
         String expectedMsg = "Name cannot be empty or contain only white space, Age cannot be negative";
-        assertThat(castNonNull(ex.getMessage())).isEqualTo(expectedMsg);
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> new Person(" ", -5))
+                .withMessage(expectedMsg);
     }
 
     @Test
     void validationRulesTest2() {
-        Exception ex = assertThrows(RuntimeException.class,
-                () -> new Person("Chabelo", 340));
         String expectedMsg = "Age cannot be bigger than %d years".formatted(MAX_AGE);
-        assertThat(castNonNull(ex.getMessage())).isEqualTo(expectedMsg);
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> new Person("Chabelo", 340))
+                .withMessage(expectedMsg);
     }
 
-    record Person(@NonNull String name, int age) {
+    record Person(String name, int age) {
 
         public Person {
             // Validation rules
